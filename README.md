@@ -32,3 +32,21 @@ CREATE TABLE comments (
 ```
 
 - `ON DELETE CASCADE`: 방명록 글을 지우면 그 글에 달린 댓글도 같이 지워진다 (댓글만 남아 떠도는 상황 방지)
+
+## 실시간 공동 그림판 (socket.io)
+DB에 저장하지 않는다 — 지금 접속해 있는 사람들끼리만 실시간으로 공유되고, 새로 들어온 사람은 빈 캔버스부터 시작한다.
+
+프론트에서는 `socket.io-client`로 서버에 접속해서 아래 이벤트를 주고받으면 된다:
+
+- `draw` (보내기/받기) — 선을 그릴 때마다 좌표 등 원하는 데이터를 실어서 emit. 서버는 내용을 보지 않고 나 빼고 모두에게 그대로 전달한다.
+  ```js
+  socket.emit("draw", { x0, y0, x1, y1, color, lineWidth });
+  socket.on("draw", (stroke) => { /* 캔버스에 그리기 */ });
+  ```
+- `clear` (보내기/받기) — 캔버스 전체 지우기를 모두에게 동기화.
+  ```js
+  socket.emit("clear");
+  socket.on("clear", () => { /* 캔버스 지우기 */ });
+  ```
+
+REST API(`/messages` 등)는 그대로 `fetch`로 쓰고, 그림판만 별도로 `io("http://localhost:3000")`으로 연결하면 된다.

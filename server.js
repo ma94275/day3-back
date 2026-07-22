@@ -2,6 +2,8 @@
 
 import express from "express";
 import cors from "cors";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
 import pool from "./db.js"; // db.js가 만들어둔 DB 연결 통로
 
 const app = express();
@@ -103,8 +105,39 @@ app.delete("/messages/:id", async (req, res) => {
   res.json(result.rows[0]);
 });
 
+// app.listen()은 내부적으로 http 서버를 만들어서 켜주는 짧은 버전이라
+// socket.io를 붙이려면 그 http 서버를 직접 만들어서 express와 socket.io 둘 다에 물려야 한다
+const httpServer = createServer(app);
+
+// 실시간 그림판 통로. cors는 위 express용 cors()와 별개로 소켓에도 한 번 더 열어줘야 한다
+const io = new Server(httpServer, {
+  cors: { origin: "*" },
+});
+
+// 그림은 DB에 저장하지 않는다 — 지금 접속해 있는 사람들끼리만 실시간으로 공유
+// (서버를 껐다 켜거나 마지막 사람이 나가면 그림은 사라짐)
+io.on("connection", (socket) => {
+  console.log(`그림판 접속: ${socket.id}`);
+
+  // [draw] 한 사람이 선을 그으면 그 좌표를 나머지 모두에게 그대로 전달
+  // socket.broadcast.emit = "보낸 사람 빼고 전부"에게 전송 — 그린 사람은 이미 자기 화면에 그렸으니 다시 안 보내도 됨
+  // stroke 안에 뭐가 들어있는지(좌표, 색, 굵기 등)는 서버가 몰라도 됨 — 그대로 전달만 하면 프론트가 알아서 그림
+  socket.on("draw", (stroke) => {
+    socket.broadcast.emit("draw", stroke);
+  });
+
+  // [clear] 캔버스 전체 지우기도 모두에게 동기화
+  socket.on("clear", () => {
+    socket.broadcast.emit("clear");
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`그림판 접속 종료: ${socket.id}`);
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`방명록 서버 실행 중: http://localhost:${PORT}`);
 });
