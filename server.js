@@ -116,18 +116,29 @@ const io = new Server(httpServer, {
 
 // 그림은 DB에 저장하지 않는다 — 지금 접속해 있는 사람들끼리만 실시간으로 공유
 // (서버를 껐다 켜거나 마지막 사람이 나가면 그림은 사라짐)
+//
+// 지금까지 그려진 선들을 서버 메모리에 쌓아 둔다 (DB 아님 — 서버 재시작하면 초기화).
+// 이 배열이 있어야 새로고침·늦은 접속자에게 기존 그림을 다시 그려줄 수 있다.
+let strokes = [];
+
 io.on("connection", (socket) => {
   console.log(`그림판 접속: ${socket.id}`);
 
+  // [init] 새로 들어온(또는 새로고침한) 사람에게 지금까지의 그림을 통째로 전송
+  // 프론트는 이 배열을 순서대로 다시 그린다 → 늦게 들어와도 기존 그림이 보인다
+  socket.emit("init", strokes);
+
   // [draw] 한 사람이 선을 그으면 그 좌표를 나머지 모두에게 그대로 전달
   // socket.broadcast.emit = "보낸 사람 빼고 전부"에게 전송 — 그린 사람은 이미 자기 화면에 그렸으니 다시 안 보내도 됨
-  // stroke 안에 뭐가 들어있는지(좌표, 색, 굵기 등)는 서버가 몰라도 됨 — 그대로 전달만 하면 프론트가 알아서 그림
+  // stroke 안에 뭐가 들어있는지(좌표, 색, 굵기 등)는 서버가 몰라도 됨 — 기억해 뒀다가 그대로 전달만 하면 프론트가 알아서 그림
   socket.on("draw", (stroke) => {
+    strokes.push(stroke); // 기억해 두고 (나중에 접속하는 사람에게 보내주기 위해)
     socket.broadcast.emit("draw", stroke);
   });
 
-  // [clear] 캔버스 전체 지우기도 모두에게 동기화
+  // [clear] 캔버스 전체 지우기도 모두에게 동기화 — 기억(strokes)도 함께 비운다
   socket.on("clear", () => {
+    strokes = [];
     socket.broadcast.emit("clear");
   });
 
