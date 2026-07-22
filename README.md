@@ -1,25 +1,82 @@
-# 방명록 API 서버 (팀 백엔드)
+<!--타이틀 부분-->
+<div align="center">
+  <h1>📖 방명록 API 서버 (팀 백엔드)</h1>
+  <p>좋아요·댓글, 이메일 인증 로그인, Socket.IO 실시간 공동 그림판을 갖춘 Express + PostgreSQL(Supabase) 백엔드</p>
+</div>
 
-## 실행 순서
+<!--내용 부분-->
+<h3 align="center">✨ Tech Stack ✨</h3>
+<div align="center">
+  <img src="https://img.shields.io/badge/node.js-339933.svg?style=for-the-badge&logo=node.js&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/express-000000.svg?style=for-the-badge&logo=express&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/javascript-F7DF1E.svg?style=for-the-badge&logo=javascript&logoColor=20232a" />&nbsp
+</div>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/postgresql-4169E1.svg?style=for-the-badge&logo=postgresql&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/supabase-3ECF8E.svg?style=for-the-badge&logo=supabase&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/socket.io-010101.svg?style=for-the-badge&logo=socketdotio&logoColor=white" />&nbsp
+</div>
+
+<br>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/JSON%20Web%20Tokens-000000.svg?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/bcrypt-338033.svg?style=for-the-badge" />&nbsp
+  <img src="https://img.shields.io/badge/nodemailer-22B573.svg?style=for-the-badge&logo=gmail&logoColor=white" />&nbsp
+</div>
+
+<br>
+
+<h3 align="center">🛠 Tools 🛠</h3>
+<div align="center">
+  <img src="https://img.shields.io/badge/git-F05033.svg?style=for-the-badge&logo=git&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/github-181717.svg?style=for-the-badge&logo=github&logoColor=white" />&nbsp
+  <img src="https://img.shields.io/badge/npm-CB3837.svg?style=for-the-badge&logo=npm&logoColor=white" />&nbsp
+</div>
+
+<br>
+
+---
+
+<h2 align="center">🚀 실행 순서 🚀</h2>
+
 1. `npm install` — package.json의 라이브러리 설치 (express, pg, cors)
 2. `.env.example`을 복사해 `.env` 생성, 팀 Supabase 접속 문자열 입력
 3. `npm run dev` — Day 2와 같은 명령. --watch(자동 재시작) + --env-file(.env 로딩)이 들어있다
 
-## 연결이 안 될 때 (Day 2 공식)
+<br>
+
+<h2 align="center">🩺 연결이 안 될 때 (Day 2 공식) 🩺</h2>
+
 - `ECONNREFUSED` → Supabase까지 **못 간 것**. .env 미로딩 의심 → `console.log(process.env.DATABASE_URL)` 확인
 - `password authentication failed` → Supabase까지 **간 것**. 비밀번호만 다시 확인
 
-## 좋아요 기능 추가 시
-`likes` 컬럼이 없으면 관련 API에서 에러가 난다.
-Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다:
+<br>
+
+---
+
+<h2 align="center">❤️ 좋아요 기능 ❤️</h2>
+
+`likes` 컬럼이 없으면 관련 API에서 에러가 난다. Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다.
+
+<details>
+<summary>Supabase SQL 펼치기</summary>
 
 ```sql
 ALTER TABLE messages ADD COLUMN likes INTEGER NOT NULL DEFAULT 0;
 ```
 
-## 댓글 기능 추가 시
-`comments` 테이블이 없으면 관련 API에서 에러가 난다.
-Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다:
+</details>
+
+<br>
+
+<h2 align="center">💬 댓글 기능 💬</h2>
+
+`comments` 테이블이 없으면 관련 API에서 에러가 난다. Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다.
+
+<details>
+<summary>Supabase SQL 펼치기</summary>
 
 ```sql
 CREATE TABLE comments (
@@ -31,11 +88,20 @@ CREATE TABLE comments (
 );
 ```
 
+</details>
+
 - `ON DELETE CASCADE`: 방명록 글을 지우면 그 글에 달린 댓글도 같이 지워진다 (댓글만 남아 떠도는 상황 방지)
 
-## 이메일 인증 회원가입 / 로그인 추가 시
-`users` 테이블이 없으면 관련 API에서 에러가 난다.
-Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다:
+<br>
+
+---
+
+<h2 align="center">🔐 이메일 인증 회원가입 / 로그인 🔐</h2>
+
+`users` 테이블이 없으면 관련 API에서 에러가 난다. Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다.
+
+<details>
+<summary>Supabase SQL 펼치기</summary>
 
 ```sql
 CREATE TABLE users (
@@ -48,6 +114,8 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
+
+</details>
 
 또한 `.env`에 아래 값을 채워야 한다 (`.env.example` 참고):
 - `JWT_SECRET` — 로그인 토큰 서명용 비밀 키 (아무 무작위 문자열)
@@ -67,7 +135,12 @@ CREATE TABLE users (
 - 인증 코드는 **10분** 후 만료, 인증 완료 시 즉시 폐기(재사용 불가)
 - 로그인 시 "이메일 없음"과 "비번 틀림"을 같은 메시지로 응답 → 계정 존재 여부 노출 방지
 
-## 실시간 공동 그림판 (socket.io)
+<br>
+
+---
+
+<h2 align="center">🎨 실시간 공동 그림판 (Socket.IO) 🎨</h2>
+
 DB에 저장하지 않는다 — 지금 접속해 있는 사람들끼리만 실시간으로 공유되고, 새로 들어온 사람은 빈 캔버스부터 시작한다.
 
 프론트에서는 `socket.io-client`로 서버에 접속해서 아래 이벤트를 주고받으면 된다:
