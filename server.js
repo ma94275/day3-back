@@ -51,6 +51,40 @@ app.post("/messages/:id/like", async (req, res) => {
   res.json(result.rows[0]);
 });
 
+// [GET /messages/:id/comments] 방명록 글의 댓글 목록
+app.get("/messages/:id/comments", async (req, res) => {
+  const messageId = Number(req.params.id);
+
+  // 댓글은 대화 흐름이라 위(목록)와 반대로 오래된 게 먼저 오도록 정렬
+  const result = await pool.query(
+    "SELECT * FROM comments WHERE message_id = $1 ORDER BY id ASC",
+    [messageId],
+  );
+  res.json(result.rows);
+});
+
+// [POST /messages/:id/comments] 방명록 글에 댓글 추가
+app.post("/messages/:id/comments", async (req, res) => {
+  const messageId = Number(req.params.id);
+  const { name, content } = req.body;
+
+  // 댓글부터 INSERT하면 없는 글 id로도 DB의 FK 제약에서 막히긴 하지만
+  // 에러 메시지가 사용자에게 불친절해서, 먼저 글이 있는지 확인하고 없으면 404로 처리
+  const message = await pool.query("SELECT id FROM messages WHERE id = $1", [
+    messageId,
+  ]);
+  if (message.rows.length === 0) {
+    return res.status(404).json({ error: "그 글은 없습니다" });
+  }
+
+  const result = await pool.query(
+    "INSERT INTO comments (message_id, name, content) VALUES ($1, $2, $3) RETURNING *",
+    [messageId, name, content],
+  );
+
+  res.status(201).json(result.rows[0]);
+});
+
 // [DELETE /messages/:id] 방명록 글 삭제 (심화 미션)
 app.delete("/messages/:id", async (req, res) => {
   // :id는 문자열로 들어온다 — Day 2의 그 함정. pg의 $1 비교는 괜찮지만 습관대로 Number()
