@@ -8,3 +8,11 @@
 ## 연결이 안 될 때 (Day 2 공식)
 - `ECONNREFUSED` → Supabase까지 **못 간 것**. .env 미로딩 의심 → `console.log(process.env.DATABASE_URL)` 확인
 - `password authentication failed` → Supabase까지 **간 것**. 비밀번호만 다시 확인
+
+## 좋아요 기능 추가 시
+`likes` 컬럼이 없으면 관련 API에서 에러가 난다.
+Supabase → SQL Editor에서 아래 SQL을 한 번 실행해야 한다:
+
+```sql
+ALTER TABLE messages ADD COLUMN likes INTEGER NOT NULL DEFAULT 0;
+```

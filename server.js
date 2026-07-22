@@ -34,6 +34,23 @@ app.post("/messages", async (req, res) => {
   res.status(201).json(result.rows[0]); // 201 = "만들어졌음" (Day 2 상태 코드)
 });
 
+// [POST /messages/:id/like] 방명록 글 좋아요
+app.post("/messages/:id/like", async (req, res) => {
+  const id = Number(req.params.id); // :id는 문자열로 들어온다 — 아래 DELETE와 같은 함정
+
+  // likes = likes + 1: 현재 값을 DB에서 직접 읽어서 더하기 때문에
+  // 여러 명이 동시에 눌러도 요청이 유실되지 않는다 (서버 메모리에 값을 들고 있다가 덮어쓰는 방식과 다름)
+  const result = await pool.query(
+    "UPDATE messages SET likes = likes + 1 WHERE id = $1 RETURNING *",
+    [id],
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: "그 글은 없습니다" });
+  }
+  res.json(result.rows[0]);
+});
+
 // [DELETE /messages/:id] 방명록 글 삭제 (심화 미션)
 app.delete("/messages/:id", async (req, res) => {
   // :id는 문자열로 들어온다 — Day 2의 그 함정. pg의 $1 비교는 괜찮지만 습관대로 Number()
