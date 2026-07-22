@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // /auth/* 로 들어오는 요청은 auth.js가 통째로 담당
-// (예: POST /auth/signup, POST /auth/verify, POST /auth/login)
+// (예: POST /auth/signup, POST /auth/login)
 app.use("/auth", authRouter);
 
 // [GET /messages] 방명록 전체 목록
