@@ -5,6 +5,7 @@ import cors from "cors";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import pool from "./db.js"; // db.js가 만들어둔 DB 연결 통로
+import authRouter from "./auth.js"; // 이메일 인증 회원가입/로그인 라우터
 
 const app = express();
 
@@ -13,6 +14,10 @@ app.use(cors());
 // POST로 오는 JSON body를 읽게 해주는 미들웨어
 // 이 줄이 없으면? → req.body가 undefined → Day 2에서 봤던 TypeError
 app.use(express.json());
+
+// /auth/* 로 들어오는 요청은 auth.js가 통째로 담당
+// (예: POST /auth/signup, POST /auth/verify, POST /auth/login)
+app.use("/auth", authRouter);
 
 // [GET /messages] 방명록 전체 목록
 app.get("/messages", async (req, res) => {
